@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>✨ Tiny Brilliant Site Generator</title>
+  <style>
+    body { font-family:sans-serif; background: #f6f8fa; margin:0; padding:2em;}
+    .card { max-width:400px; margin:2em auto; background:#fff; border-radius:10px; box-shadow:0 2px 16px #0001; padding:2em;}
+    input,button {width:100%; font-size:1.1em; padding:.6em; margin:.5em 0;}
+    h1 {text-align:center;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>✨ Tiny Brilliant Site Generator</h1>
+    <button id="loginBtn" onclick="window.location='/api/auth-github'">Sign in with GitHub</button>
+    <form id="genForm" style="display:none">
+      <input id="idea" placeholder="Describe your website..." required />
+      <button type="submit">Generate My Site</button>
+    </form>
+    <div id="result"></div>
+  </div>
+  <script>
+    window.onload = function() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('token')) {
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("genForm").style.display = "";
+        window.token = params.get('token');
+      }
+    };
+    document.getElementById("genForm").onsubmit = async e => {
+      e.preventDefault();
+      const idea = document.getElementById("idea").value;
+      const res = await fetch("/api/create-site", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ idea, token: window.token })
+      });
+      const data = await res.json();
+      document.getElementById("result").innerHTML = data.url
+        ? `<a href="${data.url}" target="_blank">🌐 See your live site!</a>`
+        : `<b>Error:</b> ${data.error || "Unknown error"}`;
+      if(data.url) window.open(data.url, "_blank");
+    };
+  </script>
+</body>
+</html>
